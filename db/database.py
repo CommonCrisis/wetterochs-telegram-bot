@@ -28,7 +28,7 @@ class SQLitePandas:
         self.conn.close()
 
 
-def create_backup():
+def create_backup(context):
     con = sqlite3.connect('telegram_bots.db.sqlite')
     bck = sqlite3.connect('telegram_bots_bkp.db.sqlite')
     with bck:

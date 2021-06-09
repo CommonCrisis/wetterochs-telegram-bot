@@ -1,5 +1,7 @@
+import datetime
 from os import getenv
 
+import pytz
 from dotenv import load_dotenv
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
@@ -82,7 +84,11 @@ def run_telegram_bots():
     updater = Updater(token=getenv('WO_BOT_TOKEN'))
     job_queue = updater.job_queue
     job_queue.run_repeating(check_for_new_data, interval=7200)
-    job_queue.run_repeating(create_backup, interval=216000)
+    job_queue.run_daily(
+        create_backup, datetime.time(
+            hour=6, minute=27, tzinfo=pytz.timezone('Europe/Berlin'),
+        ), days=(0, 1, 2, 3, 4, 5, 6),
+    )
 
     dispatcher = updater.dispatcher
 
