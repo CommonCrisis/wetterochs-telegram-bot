@@ -81,7 +81,7 @@ def run_telegram_bots():
 
     updater = Updater(token=getenv('WO_BOT_TOKEN'))
     job_queue = updater.job_queue
-    job_queue.run_repeating(check_for_new_data, interval=216000)
+    job_queue.run_repeating(check_for_new_data, interval=7200)
     job_queue.run_repeating(create_backup, interval=216000)
 
     dispatcher = updater.dispatcher
