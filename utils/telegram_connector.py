@@ -46,13 +46,18 @@ def send_update(update, context):
     msg, msg_hash = fetch_mail_data()
     fetch_overview()
 
-    update_user_hash(update.effective_chat.id, msg_hash)
+    try:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            parse_mode='HTML', text=msg,
+        )
+        with open('overview.png', 'rb') as pic:
+            context.bot.send_photo(chat_id=update.effective_chat.id, photo=pic)
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id, parse_mode='HTML', text=msg,
-    )
-    with open('overview.png', 'rb') as pic:
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=pic)
+        update_user_hash(update.effective_chat.id, msg_hash)
+
+    except Unauthorized:
+        delete_user(update.effective_chat.id)
 
 
 def send_wo_mail(context, users: pd.DataFrame) -> None:
