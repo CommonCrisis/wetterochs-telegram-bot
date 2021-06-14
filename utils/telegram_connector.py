@@ -1,8 +1,10 @@
 import datetime
 from os import getenv
 
+import pandas as pd
 import pytz
 from dotenv import load_dotenv
+from telegram.error import Unauthorized
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 
@@ -53,29 +55,38 @@ def send_update(update, context):
         context.bot.send_photo(chat_id=update.effective_chat.id, photo=pic)
 
 
-def send_wo_mail(context):
+def send_wo_mail(context, users: pd.DataFrame) -> None:
     msg, msg_hash = fetch_mail_data()
     fetch_overview()
 
-    users = fetch_data_to_df('users')
     user_ids = users[users['last_hash'] != str(msg_hash)]['telegram_id'].to_list()
 
     if user_ids:
         for user_id in user_ids:
-            context.bot.send_message(chat_id=user_id, parse_mode='HTML', text=msg)
-            with open('overview.png', 'rb') as pic:
-                context.bot.send_photo(chat_id=user_id, photo=pic)
+            try:
+                context.bot.send_message(chat_id=user_id, parse_mode='HTML', text=msg)
+                with open('overview.png', 'rb') as pic:
+                    context.bot.send_photo(chat_id=user_id, photo=pic)
 
-            update_user_hash(user_id, msg_hash)
+                update_user_hash(user_id, msg_hash)
+
+            except Unauthorized:
+                delete_user(user_id)
 
 
 def check_for_new_data(context):
     _, msg_hash = fetch_mail_data()
-    hashes = fetch_data_to_df('hashes')['hash'].to_list()
 
-    if str(msg_hash) not in hashes:
-        add_hash(msg_hash)
-        send_wo_mail(context)
+    hashes = fetch_data_to_df('hashes')['hash'].to_list()
+    users = fetch_data_to_df('users')
+    user_hashes = users['last_hash']
+
+    has_latest = [True if p == str(msg_hash) else False for p in user_hashes]
+
+    if not all(has_latest):
+        if str(msg_hash) not in hashes:
+            add_hash(msg_hash)
+        send_wo_mail(context, users)
 
 
 def run_telegram_bots():
@@ -83,7 +94,7 @@ def run_telegram_bots():
 
     updater = Updater(token=getenv('WO_BOT_TOKEN'))
     job_queue = updater.job_queue
-    job_queue.run_repeating(check_for_new_data, interval=7200)
+    job_queue.run_repeating(check_for_new_data, interval=10)
     job_queue.run_daily(
         create_backup, datetime.time(
             hour=6, minute=27, tzinfo=pytz.timezone('Europe/Berlin'),
