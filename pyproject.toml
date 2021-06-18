@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "telegram_bots"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Samuel"]
 
@@ -11,15 +11,15 @@ python-dotenv = "^0.17.1"
 python-telegram-bot = "^13.6"
 bs4 = "^0.0.1"
 requests = "^2.25.1"
-imgkit = "^1.2.2"
-wkhtmltopdf = "^0.2"
+lxml = "^4.6.3"
+plotly = "^4.14.3"
+psutil = "^5.8.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
 black = "^21.5b2"
 pre-commit = "^2.13.0"
 autoflake = "^1.4"
-
 
 [tool.black]
 line-length = 88

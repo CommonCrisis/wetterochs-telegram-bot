@@ -5,7 +5,9 @@ import pandas as pd
 import pytz
 from dotenv import load_dotenv
 from telegram.error import Unauthorized
+from telegram.ext import CallbackContext
 from telegram.ext import CommandHandler
+from telegram.ext import ConversationHandler
 from telegram.ext import Updater
 
 from crud.sql_queries import add_hash
@@ -19,37 +21,40 @@ from utils.mail_fetcher import fetch_mail_data
 from utils.mail_fetcher import fetch_overview
 
 
-def start(update, context):
+def start(update: ConversationHandler, context: CallbackContext) -> None:
     add_user(update.effective_chat.id, update.effective_chat.full_name)
     context.bot.send_message(chat_id=update.effective_chat.id, text=WELCOME_MESSAGE)
     send_update(update, context)
 
 
-def stop(update, context):
+def stop(update: ConversationHandler, context: CallbackContext) -> None:
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text='Schade, hab einen schönen Tag :)',
+        chat_id=update.effective_chat.id,
+        text='Schade, hab einen schönen Tag :)',
     )
     delete_user(update.effective_chat.id)
 
 
-def info(update, context):
+def info(update: ConversationHandler, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text=WELCOME_MESSAGE)
 
 
-def donate(update, context):
+def donate(update: ConversationHandler, context: CallbackContext):
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text='Hier kannst du dem WetterOchs einen Kaffee spendieren: https://www.wetterochs.de/wetter/sponsor/donation.html',
+        chat_id=update.effective_chat.id,
+        text='Hier kannst du dem WetterOchs einen Kaffee spendieren: https://www.wetterochs.de/wetter/sponsor/donation.html',
     )
 
 
-def send_update(update, context):
+def send_update(update: ConversationHandler, context: CallbackContext):
     msg, msg_hash = fetch_mail_data()
     fetch_overview()
 
     try:
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            parse_mode='HTML', text=msg,
+            parse_mode='HTML',
+            text=msg,
         )
         with open('overview.png', 'rb') as pic:
             context.bot.send_photo(chat_id=update.effective_chat.id, photo=pic)
@@ -60,7 +65,7 @@ def send_update(update, context):
         delete_user(update.effective_chat.id)
 
 
-def send_wo_mail(context, users: pd.DataFrame) -> None:
+def send_wo_mail(context: CallbackContext, users: pd.DataFrame) -> None:
     msg, msg_hash = fetch_mail_data()
     fetch_overview()
 
@@ -79,7 +84,7 @@ def send_wo_mail(context, users: pd.DataFrame) -> None:
                 delete_user(user_id)
 
 
-def check_for_new_data(context):
+def check_for_new_data(context: CallbackContext):
     _, msg_hash = fetch_mail_data()
 
     hashes = fetch_data_to_df('hashes')['hash'].to_list()
@@ -99,11 +104,15 @@ def run_telegram_bots():
 
     updater = Updater(token=getenv('WO_BOT_TOKEN'))
     job_queue = updater.job_queue
-    job_queue.run_repeating(check_for_new_data, interval=10)
+    job_queue.run_repeating(check_for_new_data, interval=7200)
     job_queue.run_daily(
-        create_backup, datetime.time(
-            hour=6, minute=27, tzinfo=pytz.timezone('Europe/Berlin'),
-        ), days=(0, 1, 2, 3, 4, 5, 6),
+        create_backup,
+        datetime.time(
+            hour=6,
+            minute=27,
+            tzinfo=pytz.timezone('Europe/Berlin'),
+        ),
+        days=(0, 1, 2, 3, 4, 5, 6),
     )
 
     dispatcher = updater.dispatcher
