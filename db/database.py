@@ -1,8 +1,11 @@
 import sqlite3
 
+from utils.config import DB_BU_NAME
+from utils.config import DB_NAME
+
 
 class SQLite:
-    def __init__(self, file='telegram_bots.db.sqlite'):
+    def __init__(self, file=DB_NAME):
         self.file = file
 
     def __enter__(self):
@@ -16,7 +19,7 @@ class SQLite:
 
 
 class SQLitePandas:
-    def __init__(self, file='telegram_bots.db.sqlite'):
+    def __init__(self, file=DB_NAME):
         self.file = file
 
     def __enter__(self):
@@ -29,8 +32,8 @@ class SQLitePandas:
 
 
 def create_backup(context):
-    con = sqlite3.connect('telegram_bots.db.sqlite')
-    bck = sqlite3.connect('telegram_bots_bkp.db.sqlite')
+    con = sqlite3.connect(DB_NAME)
+    bck = sqlite3.connect(DB_BU_NAME)
     with bck:
         con.backup(bck, pages=1)
     bck.close()

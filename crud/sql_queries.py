@@ -13,23 +13,23 @@ def fetch_data_to_df(table_name: str) -> pd.DataFrame:
     return data
 
 
-def add_user(telegram_id: int, user_name: str):
+def add_user(telegram_id: int, user_name: str) -> None:
     with SQLite() as cur:
         cur.execute(f"INSERT INTO users VALUES ('{telegram_id}', '{user_name}', NULL)")
 
 
-def delete_user(telegram_id: int):
+def delete_user(telegram_id: int) -> None:
     with SQLite() as cur:
         cur.execute(f'DELETE FROM users WHERE telegram_id = {telegram_id}')
 
 
-def update_user_hash(telegram_id: int, latest_hash: int):
+def update_user_hash(telegram_id: int, latest_hash: int) -> None:
     with SQLite() as cur:
         cur.execute(
             f"UPDATE users SET last_hash = '{latest_hash}' WHERE telegram_id = {telegram_id}",
         )
 
 
-def add_hash(new_hash: str):
+def add_hash(new_hash: str) -> None:
     with SQLite() as cur:
         cur.execute(f"INSERT INTO hashes VALUES ('{new_hash}', '{datetime.now()}')")

@@ -15,7 +15,7 @@ def _get_soup(url: str) -> BeautifulSoup:
     return soup
 
 
-def fetch_overview():
+def fetch_overview() -> None:
     url_pic = 'https://www.wettermail.de/wetter/wettermail_inhalt.html'
     soup = _get_soup(url_pic)
     table = soup.find_all('table')[2]
@@ -58,25 +58,36 @@ def create_plot(html_table: str) -> None:
             y=data['NS'],
             name='Niederschlag',
             marker_color='rgba(0,102,204,0.2)',
+            text=data['NS'],
+            textposition='auto',
+            textfont=dict(color='white'),
         ),
         secondary_y=True,
     )
     fig.add_trace(
         go.Scatter(
+            mode='lines+markers+text',
             x=data['date'],
             y=data['Max Temp'],
             name='Max Temperatur',
             line=dict(color='red'),
+            text=data['Max Temp'],
+            textposition='bottom center',
+            textfont=dict(color='red'),
         ),
         secondary_y=False,
     )
 
     fig.add_trace(
         go.Scatter(
+            mode='lines+markers+text',
             x=data['date'],
             y=data['Min Temp'],
             name='Min Temperatur',
             line=dict(color='orange'),
+            text=data['Min Temp'],
+            textposition='top center',
+            textfont=dict(color='orange'),
         ),
         secondary_y=False,
     )
